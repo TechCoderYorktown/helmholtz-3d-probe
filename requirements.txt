@@ -1,0 +1,9 @@
+PySide6
+pyqtgraph
+numpy
+pandas
+adafruit-blinka
+adafruit-circuitpython-tca9548a
+adafruit-circuitpython-mmc56x3
+pyusb
+libusb-package
