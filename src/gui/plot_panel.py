@@ -31,9 +31,22 @@ class PlotPanel(QWidget):
         single_layout.addWidget(self.plot)
         self.stack.addWidget(single_widget)
 
-        self.x_data = []
-        self.y_data = []
-        self.z_data = []
+        # ----------------------------
+        # Single-view data storage
+        # One history per sensor
+        # ----------------------------
+
+        self.sensor_data = []
+
+        for _ in range(8):
+
+            self.sensor_data.append(
+                {
+                    "x": [],
+                    "y": [],
+                    "z": [],
+                }
+            )
 
         # ----- All Sensors Widget -----
         all_widget = QWidget()
@@ -52,15 +65,12 @@ class PlotPanel(QWidget):
             z_curve = plot.plot(name="Bz", pen="b")
 
             self.all_plots.append(
-                {
-                    "plot": plot,
-                    "x": x_curve,
-                    "y": y_curve,
-                    "z": z_curve,
-                    "xdata": [],
-                    "ydata": [],
-                    "zdata": [],
-                }
+            {
+                "plot": plot,
+                "x": x_curve,
+                "y": y_curve,
+                "z": z_curve,
+            }
             )
 
             grid.addWidget(plot, i // 2, i % 2)
@@ -76,57 +86,70 @@ class PlotPanel(QWidget):
     def set_all_view(self):
         self.stack.setCurrentIndex(1)
 
-    def update_sensor(self, sensor_reading):
+    def update_sensor(self, sensor_index):
+        """
+        Redraw one sensor using its stored history.
+        """
 
-        self.x_data.append(sensor_reading.bx)
-        self.y_data.append(sensor_reading.by)
-        self.z_data.append(sensor_reading.bz)
+        sensor = self.sensor_data[sensor_index]
 
-        if len(self.x_data) > self.max_points:
-            self.x_data.pop(0)
-            self.y_data.pop(0)
-            self.z_data.pop(0)
+        self.curve_x.setData(sensor["x"])
 
-        self.curve_x.setData(self.x_data)
-        self.curve_y.setData(self.y_data)
-        self.curve_z.setData(self.z_data)
+        self.curve_y.setData(sensor["y"])
 
-    def update_all(self, readings):
+        self.curve_z.setData(sensor["z"])
+
+    def update_all(self):
+
+        for i in range(8):
+
+            sensor = self.sensor_data[i]
+
+            plot = self.all_plots[i]
+
+            plot["x"].setData(sensor["x"])
+
+            plot["y"].setData(sensor["y"])
+
+            plot["z"].setData(sensor["z"])
+
+    def append_readings(self, readings):
+        """
+        Store every incoming sample for every sensor.
+        """
 
         for i, reading in enumerate(readings[:8]):
-            plot_data = self.all_plots[i]
 
-            plot_data["xdata"].append(reading.bx)
-            plot_data["ydata"].append(reading.by)
-            plot_data["zdata"].append(reading.bz)
+            # -------- Single View History --------
 
-            if len(plot_data["xdata"]) > self.max_points:
-                plot_data["xdata"].pop(0)
-                plot_data["ydata"].pop(0)
-                plot_data["zdata"].pop(0)
+            sensor = self.sensor_data[i]
 
-            plot_data["x"].setData(plot_data["xdata"])
-            plot_data["y"].setData(plot_data["ydata"])
-            plot_data["z"].setData(plot_data["zdata"])
+            sensor["x"].append(reading.bx)
+            sensor["y"].append(reading.by)
+            sensor["z"].append(reading.bz)
+
+            if len(sensor["x"]) > self.max_points:
+                sensor["x"].pop(0)
+                sensor["y"].pop(0)
+                sensor["z"].pop(0)
 
     def clear(self):
 
-        self.x_data.clear()
-        self.y_data.clear()
-        self.z_data.clear()
+        for sensor in self.sensor_data:
+
+            sensor["x"].clear()
+            sensor["y"].clear()
+            sensor["z"].clear()
 
         self.curve_x.setData([])
         self.curve_y.setData([])
         self.curve_z.setData([])
 
-        for plot_data in self.all_plots:
-            plot_data["xdata"].clear()
-            plot_data["ydata"].clear()
-            plot_data["zdata"].clear()
+        for plot in self.all_plots:
 
-            plot_data["x"].setData([])
-            plot_data["y"].setData([])
-            plot_data["z"].setData([])
+            plot["x"].setData([])
+            plot["y"].setData([])
+            plot["z"].setData([])
 
     def show_single(self):
         self.stack.setCurrentIndex(0)

@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self.toolbar.run_button.clicked.connect(self.start_acquisition)
         self.toolbar.stop_button.clicked.connect(self.stop_acquisition)
         self.toolbar.clear_button.clicked.connect(self.clear_everything)
+        self.sensor_panel.button_group.buttonClicked.connect(self.sensor_changed)
 
         # -----------------------
         # Layout
@@ -158,6 +159,8 @@ class MainWindow(QMainWindow):
             self.recorder.get_data()[-1]
         )
 
+        self.plot_panel.append_readings(readings)
+
         # -----------------------
         # Detect sensor change
         # -----------------------
@@ -169,9 +172,18 @@ class MainWindow(QMainWindow):
             self.current_sensor = selected
 
             if selected == -1:
+
                 self.plot_panel.show_all()
+
+                self.plot_panel.update_all()
+
             else:
+
                 self.plot_panel.show_single()
+
+                self.plot_panel.update_sensor(
+                    self.current_sensor
+                )
 
         # -----------------------
         # View All
@@ -179,7 +191,7 @@ class MainWindow(QMainWindow):
 
         if self.current_sensor == -1:
 
-            self.plot_panel.update_all(readings)
+            self.plot_panel.update_all()
 
             # Show Sensor 0 values in status panel
             first = readings[0]
@@ -209,9 +221,10 @@ class MainWindow(QMainWindow):
         if self.current_sensor >= len(readings):
             return
 
-        reading = readings[self.current_sensor]
 
-        self.plot_panel.update_sensor(reading)
+        self.plot_panel.update_sensor(self.current_sensor)
+
+        reading = readings[self.current_sensor]
 
         self.status_panel.bx.setText(
             f"Bx: {reading.bx:.2f} μT"
@@ -257,3 +270,23 @@ class MainWindow(QMainWindow):
         self.stop_acquisition()
 
         event.accept()
+    
+    def sensor_changed(self):
+
+        self.current_sensor = (
+            self.sensor_panel.selected_sensor()
+        )
+
+        if self.current_sensor == -1:
+
+            self.plot_panel.show_all()
+
+            self.plot_panel.update_all()
+
+        else:
+
+            self.plot_panel.show_single()
+
+            self.plot_panel.update_sensor(
+                self.current_sensor
+            )
