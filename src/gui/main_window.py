@@ -58,8 +58,7 @@ class MainWindow(QMainWindow):
         # Connections
         # -----------------------
 
-        self.toolbar.run_button.clicked.connect(self.start_acquisition)
-        self.toolbar.stop_button.clicked.connect(self.stop_acquisition)
+        self.toolbar.run_button.clicked.connect(self.toggle_acquisition)
         self.toolbar.clear_button.clicked.connect(self.clear_everything)
         self.sensor_panel.button_group.buttonClicked.connect(self.sensor_changed)
 
@@ -120,7 +119,12 @@ class MainWindow(QMainWindow):
 
         self.thread.start()
 
-        self.toolbar.status_label.setText("Status: Running")
+        self.toolbar.set_running()
+
+        # Disable controls while acquiring
+        self.toolbar.continue_checkbox.setEnabled(False)
+        self.toolbar.save_button.setEnabled(False)
+        self.toolbar.clear_button.setEnabled(False)
 
     def stop_acquisition(self):
 
@@ -138,7 +142,12 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
-        self.toolbar.status_label.setText("Status: Stopped")
+        self.toolbar.set_idle()
+
+        # Re-enable controls
+        self.toolbar.continue_checkbox.setEnabled(True)
+        self.toolbar.save_button.setEnabled(True)
+        self.toolbar.clear_button.setEnabled(True)
 
     # ==========================================================
     # Display
@@ -259,7 +268,7 @@ class MainWindow(QMainWindow):
 
         self.run_history.start_new_run()
 
-        self.toolbar.status_label.setText("Status: Idle")
+        self.toolbar.set_idle()
 
     # ==========================================================
     # Close
@@ -290,3 +299,17 @@ class MainWindow(QMainWindow):
             self.plot_panel.update_sensor(
                 self.current_sensor
             )
+
+    def toggle_acquisition(self):
+
+        if self.thread is None:
+
+            self.start_acquisition()
+
+        elif self.thread.isRunning():
+
+            self.stop_acquisition()
+
+        else:
+
+            self.start_acquisition()

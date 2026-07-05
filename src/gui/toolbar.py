@@ -11,7 +11,6 @@ class Toolbar(QWidget):
         super().__init__()
 
         self.run_button = QPushButton("Run")
-        self.stop_button = QPushButton("Stop")
         self.save_button = QPushButton("Save CSV")
         self.clear_button = QPushButton("Clear")
         self.continue_checkbox = QCheckBox("Continue Previous Run")
@@ -21,7 +20,6 @@ class Toolbar(QWidget):
         layout = QHBoxLayout()
 
         layout.addWidget(self.run_button)
-        layout.addWidget(self.stop_button)
         layout.addWidget(self.save_button)
         layout.addWidget(self.clear_button)
         layout.addWidget(self.continue_checkbox)
@@ -31,3 +29,16 @@ class Toolbar(QWidget):
         layout.addWidget(self.status_label)
 
         self.setLayout(layout)
+
+    def set_running(self):
+
+        self.run_button.setText("Stop")
+
+        self.status_label.setText("Status: Running")
+
+
+    def set_idle(self):
+
+        self.run_button.setText("Run")
+
+        self.status_label.setText("Status: Idle")
