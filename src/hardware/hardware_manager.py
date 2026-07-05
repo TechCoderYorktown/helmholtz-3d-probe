@@ -1,5 +1,4 @@
 from hardware.simulator_manager import SimulatorManager
-from hardware.mmc5603_manager import MMC5603Manager
 
 
 class HardwareManager:
@@ -11,6 +10,8 @@ class HardwareManager:
         if simulate:
             self.manager = SimulatorManager()
         else:
+            from hardware.mmc5603_manager import MMC5603Manager
+
             self.manager = MMC5603Manager()
 
     def connect(self):

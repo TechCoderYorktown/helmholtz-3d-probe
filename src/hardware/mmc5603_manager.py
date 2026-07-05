@@ -93,19 +93,12 @@ class MMC5603Manager:
                 z = float("nan")
 
             readings.append(
-
-                SensorReading(
-
-                    sensor=i,
-
-                    bx=x,
-
-                    by=y,
-
-                    bz=z,
-
+                SensorReading.now(
+                    i,
+                    x,
+                    y,
+                    z,
                 )
-
             )
 
         return readings

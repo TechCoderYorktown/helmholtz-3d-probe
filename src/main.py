@@ -1,4 +1,5 @@
 import sys
+import argparse
 
 from PySide6.QtWidgets import QApplication
 
@@ -7,10 +8,17 @@ from hardware.hardware_manager import HardwareManager
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Use the simulator instead of the hardware backend.",
+    )
+    args = parser.parse_args()
+
     app = QApplication(sys.argv)
 
-    # Change to False when the FT232H and sensors are connected.
-    manager = HardwareManager(simulate=True)
+    manager = HardwareManager(simulate=args.simulate)
 
     window = MainWindow(manager)
 
