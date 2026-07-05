@@ -10,6 +10,8 @@ class SensorManager:
 
     def __init__(self):
 
+        self.connected = False
+
         self.connection = FT232HConnection()
 
         self.i2c = None
@@ -19,6 +21,9 @@ class SensorManager:
         self.sensors = []
 
     def connect(self):
+
+        if self.connected:
+            return
 
         self.i2c = self.connection.connect()
 
@@ -34,6 +39,8 @@ class SensorManager:
 
         ]
 
+
+        self.connected = True
         print("Connected to 8 sensors.")
 
     def read_all(self):
@@ -47,6 +54,8 @@ class SensorManager:
                 bx, by, bz = sensor.magnetic
 
             except Exception:
+
+                print(f"Sensor {sensor_id} failed: {e}")
 
                 bx = float("nan")
                 by = float("nan")
@@ -67,4 +76,10 @@ class SensorManager:
 
     def disconnect(self):
 
-        self.sensors = []
+        self.sensors.clear()
+
+        self.mux = None
+
+        self.i2c = None
+
+        self.connected = False

@@ -3,13 +3,14 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from gui.main_window import MainWindow
-from hardware.simulator_manager import SimulatorManager
+from hardware.hardware_manager import HardwareManager
 
 
 def main():
     app = QApplication(sys.argv)
 
-    manager = SimulatorManager()
+    # Change to False when the FT232H and sensors are connected.
+    manager = HardwareManager(simulate=True)
 
     window = MainWindow(manager)
 
