@@ -14,9 +14,14 @@ def main():
         action="store_true",
         help="Use the simulator instead of the hardware backend.",
     )
-    args = parser.parse_args()
+    args, qt_args = parser.parse_known_args()
 
     app = QApplication(sys.argv)
+
+    if args.simulate:
+        print("Starting in SIMULATION mode.")
+    else:
+        print("Starting in HARDWARE mode.")
 
     manager = HardwareManager(simulate=args.simulate)
 
