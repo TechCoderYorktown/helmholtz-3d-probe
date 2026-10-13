@@ -3,7 +3,10 @@ from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
+    QFileDialog,
+    QMessageBox,
 )
+import csv
 
 from config import APP_NAME, WINDOW_WIDTH, WINDOW_HEIGHT
 
@@ -59,6 +62,7 @@ class MainWindow(QMainWindow):
         # -----------------------
 
         self.toolbar.run_button.clicked.connect(self.toggle_acquisition)
+        self.toolbar.save_button.clicked.connect(self.save_csv)
         self.toolbar.clear_button.clicked.connect(self.clear_everything)
         self.sensor_panel.button_group.buttonClicked.connect(self.sensor_changed)
 
@@ -97,6 +101,9 @@ class MainWindow(QMainWindow):
 
         try:
             self.manager.connect()
+            self.sensor_panel.set_available_sensor_ids(
+                self.manager.sensor_ids
+            )
 
         except Exception as e:
 
@@ -116,6 +123,7 @@ class MainWindow(QMainWindow):
         self.thread = AcquisitionThread(self.manager)
 
         self.thread.data_ready.connect(self.update_display)
+        self.thread.error.connect(self.acquisition_error)
 
         self.thread.start()
 
@@ -156,6 +164,7 @@ class MainWindow(QMainWindow):
     def update_display(self, readings):
 
         if not readings:
+            self.toolbar.status_label.setText("Status: No sensors responding")
             return
 
         # -----------------------
@@ -202,7 +211,8 @@ class MainWindow(QMainWindow):
 
             self.plot_panel.update_all()
 
-            # Show Sensor 0 values in status panel
+            # Show the first connected sensor in the status panel. The
+            # notebook intentionally skips empty mux channels.
             first = readings[0]
 
             self.status_panel.bx.setText(
@@ -227,13 +237,15 @@ class MainWindow(QMainWindow):
         # Single Sensor
         # -----------------------
 
-        if self.current_sensor >= len(readings):
+        reading = next(
+            (item for item in readings if item.sensor_id == self.current_sensor),
+            None,
+        )
+        if reading is None:
             return
 
 
         self.plot_panel.update_sensor(self.current_sensor)
-
-        reading = readings[self.current_sensor]
 
         self.status_panel.bx.setText(
             f"Bx: {reading.bx:.2f} μT"
@@ -250,6 +262,10 @@ class MainWindow(QMainWindow):
         self.status_panel.mag.setText(
             f"|B|: {reading.magnitude:.2f} μT"
         )
+
+    def acquisition_error(self, message):
+        self.toolbar.status_label.setText(f"Status: Acquisition error: {message}")
+        self.stop_acquisition()
 
     # ==========================================================
     # Clear
@@ -313,3 +329,29 @@ class MainWindow(QMainWindow):
         else:
 
             self.start_acquisition()
+
+    def save_csv(self):
+        rows = self.recorder.get_data()
+        if not rows:
+            self.toolbar.status_label.setText("Status: No data to save")
+            return
+
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save magnetic field data",
+            "helmholtz_measurements.csv",
+            "CSV files (*.csv)",
+        )
+        if not path:
+            return
+
+        try:
+            with open(path, "w", newline="", encoding="utf-8") as output:
+                writer = csv.writer(output)
+                writer.writerow(DataRecorder.headers())
+                writer.writerows(rows)
+        except OSError as error:
+            QMessageBox.critical(self, "Save failed", str(error))
+            return
+
+        self.toolbar.status_label.setText(f"Status: Saved {path}")

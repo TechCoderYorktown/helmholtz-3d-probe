@@ -14,6 +14,12 @@ class HardwareManager:
 
             self.manager = MMC5603Manager()
 
+    @property
+    def sensor_ids(self):
+        if self.simulate:
+            return list(range(8))
+        return self.manager.sensor_ids
+
     def connect(self):
         self.manager.connect()
 

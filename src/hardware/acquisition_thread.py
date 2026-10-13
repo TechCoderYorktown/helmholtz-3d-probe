@@ -1,5 +1,4 @@
-from PySide6.QtCore import QThread
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QThread, Signal
 
 import time
 
@@ -7,6 +6,7 @@ import time
 class AcquisitionThread(QThread):
 
     data_ready = Signal(list)
+    error = Signal(str)
 
     def __init__(self, manager):
 
@@ -20,10 +20,15 @@ class AcquisitionThread(QThread):
         self.running = True
 
         while self.running:
-            readings = self.manager.read_all()
+            try:
+                readings = self.manager.read_all()
+            except Exception as error:
+                self.error.emit(str(error))
+                break
             self.data_ready.emit(readings)
 
             self.msleep(100)   # 10 Hz update rate
+        self.running = False
 
     def stop(self):
         

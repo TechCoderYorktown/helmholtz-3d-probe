@@ -22,13 +22,13 @@ class DataRecorder:
             elapsed,
         ]
 
-        # Expect up to 8 sensors
-        for sensor in readings:
-            row.extend([
-                sensor.bx,
-                sensor.by,
-                sensor.bz,
-            ])
+        readings_by_sensor = {sensor.sensor_id: sensor for sensor in readings}
+        for sensor_id in range(8):
+            sensor = readings_by_sensor.get(sensor_id)
+            if sensor is None:
+                row.extend(["", "", ""])
+            else:
+                row.extend([sensor.bx, sensor.by, sensor.bz])
 
         self.rows.append(row)
         self.sample += 1

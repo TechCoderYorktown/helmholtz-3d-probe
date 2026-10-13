@@ -16,8 +16,7 @@ env/
 
 # Build outputs
 build/
-dist/
-*.spec
+dist*/
 
 # OS files
 .DS_Store

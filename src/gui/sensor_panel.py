@@ -20,6 +20,7 @@ class SensorPanel(QWidget):
         self.button_group = QButtonGroup(self)
 
         self.buttons = []
+        self.sensor_buttons = {}
 
         # ----- All Sensors -----
         all_button = QRadioButton("View All")
@@ -39,12 +40,22 @@ class SensorPanel(QWidget):
             self.button_group.addButton(button)
 
             self.buttons.append(button)
+            self.sensor_buttons[i] = button
 
             layout.addWidget(button)
 
         layout.addStretch()
 
         self.setLayout(layout)
+
+    def set_available_sensor_ids(self, sensor_ids):
+        available = set(sensor_ids)
+        for sensor_id, button in self.sensor_buttons.items():
+            button.setVisible(sensor_id in available)
+
+        selected = self.selected_sensor()
+        if selected != -1 and selected not in available:
+            self.buttons[0].setChecked(True)
 
     def selected_sensor(self):
         """
